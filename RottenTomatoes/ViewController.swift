@@ -11,7 +11,7 @@ import AFNetworking
 
 private let CELL_NAME = "net.thegeekgoddess.rottentomatoes.moviecell"
 
-class ViewController: UIViewController, UITableViewDataSource {
+class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     
     @IBOutlet weak var movieTableView: UITableView!
     
@@ -58,6 +58,10 @@ class ViewController: UIViewController, UITableViewDataSource {
         }
         task.resume()
         
+    }
+    
+    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        tableView.deselectRowAtIndexPath(indexPath, animated: true)
     }
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
