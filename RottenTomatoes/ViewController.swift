@@ -7,11 +7,14 @@
 //
 
 import UIKit
+import AFNetworking
+
 private let CELL_NAME = "net.thegeekgoddess.rottentomatoes.moviecell"
 
 class ViewController: UIViewController, UITableViewDataSource {
     
     @IBOutlet weak var movieTableView: UITableView!
+    
     var movies: NSArray?
 
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -27,6 +30,11 @@ class ViewController: UIViewController, UITableViewDataSource {
         let cell = tableView.dequeueReusableCellWithIdentifier(CELL_NAME) as! MovieCell
         cell.movieTitleLabel.text = movieDictionary["title"] as? String
         cell.movieDescriptionLabel.text = movieDictionary["synopsis"] as? String
+        
+//        let doraURL = "http://kidtivity.com/wp-content/uploads/2015/08/Dora_backpack-running.jpeg"
+//        cell.posterView.setImageWithURL(NSURL(string: doraURL as String)!)
+        let url = NSURL(string: movieDictionary.valueForKeyPath("posters.thumbnail") as! String)!
+        cell.posterView.setImageWithURL(url)
         
         return cell
     }
@@ -59,7 +67,7 @@ class MovieCell:UITableViewCell {
     
     @IBOutlet weak var movieTitleLabel: UILabel!
     @IBOutlet weak var movieDescriptionLabel: UILabel!
-    
+    @IBOutlet weak var posterView: UIImageView!
     
 }
 
