@@ -15,13 +15,16 @@ private let CELL_NAME = "net.thegeekgoddess.rottentomatoes.moviecell"
 
 class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     
+    @IBOutlet var errorView: UIView!
+    @IBOutlet var networkErrorLabel: UILabel!
+    
     @IBOutlet weak var movieTableView: UITableView!
     
     var movies: NSArray?
     var refreshControl:UIRefreshControl!
     
     override func viewDidLoad() {
-        // copy paste credit: http://stackoverflow.com/questions/24475792/how-to-use-pull-to-refresh-in-swift
+
         self.refreshControl = UIRefreshControl()
         self.refreshControl.attributedTitle = NSAttributedString(string: "Pull to refresh")
         self.refreshControl.addTarget(self, action: "refresh:", forControlEvents: UIControlEvents.ValueChanged)
@@ -72,7 +75,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
 //        task.resume()
         
         refresh(self)
-
+        
     }
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
@@ -107,12 +110,25 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
             
             let responseDictionary = try! NSJSONSerialization.JSONObjectWithData(data!, options: []) as! NSDictionary
             
+            if let error = error {
+                
+                dispatch_async(dispatch_get_main_queue()) {
+                    self.errorView.hidden = true
+                    self.errorView.backgroundColor = UIColor.blackColor()
+                    self.networkErrorLabel.backgroundColor = UIColor.whiteColor()
+                    self.networkErrorLabel.text = "Network Error!"
+                }
+                
+            }
+            
             dispatch_async(dispatch_get_main_queue()) {
                 self.movies = responseDictionary["movies"] as? NSArray
                 NSLog("Count \(responseDictionary.count)")
                 self.movieTableView.reloadData()
+                
             }
             
+            NSLog("Errors?:\(error?.localizedDescription)")
             NSLog("\(responseDictionary)")
             
         }
