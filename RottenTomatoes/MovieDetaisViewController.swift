@@ -7,7 +7,7 @@
 //
 
 import UIKit
-
+import KVNProgress
 
 class MovieDetaisViewController: UIViewController {
 
@@ -17,6 +17,9 @@ class MovieDetaisViewController: UIViewController {
     
     var movie: NSDictionary!
     
+    override func viewDidAppear(animated: Bool) {
+        KVNProgress.dismiss()
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()

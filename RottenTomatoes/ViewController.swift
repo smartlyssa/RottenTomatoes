@@ -8,6 +8,8 @@
 
 import UIKit
 import AFNetworking
+import KVNProgress
+
 
 private let CELL_NAME = "net.thegeekgoddess.rottentomatoes.moviecell"
 
@@ -16,6 +18,16 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     @IBOutlet weak var movieTableView: UITableView!
     
     var movies: NSArray?
+    var refreshControl:UIRefreshControl!
+    
+    override func viewDidLoad() {
+        // copy paste credit: http://stackoverflow.com/questions/24475792/how-to-use-pull-to-refresh-in-swift
+        self.refreshControl = UIRefreshControl()
+        self.refreshControl.attributedTitle = NSAttributedString(string: "Pull to refresh")
+        self.refreshControl.addTarget(self, action: "refresh:", forControlEvents: UIControlEvents.ValueChanged)
+        self.movieTableView.addSubview(refreshControl)
+        
+    }
 
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return movies?.count ?? 0
@@ -41,27 +53,32 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         super.viewDidAppear(animated)
 //        NSLog("TableView? \(movieTableView.frame)")
         
-        let RottenTomatoesURLString = "https://gist.githubusercontent.com/timothy1ee/d1778ca5b944ed974db0/raw/489d812c7ceeec0ac15ab77bf7c47849f2d1eb2b/gistfile1.json"
+//        let RottenTomatoesURLString = "https://gist.githubusercontent.com/timothy1ee/d1778ca5b944ed974db0/raw/489d812c7ceeec0ac15ab77bf7c47849f2d1eb2b/gistfile1.json"
         
-        let request = NSMutableURLRequest(URL: NSURL(string:RottenTomatoesURLString)!)
+//        let request = NSMutableURLRequest(URL: NSURL(string:RottenTomatoesURLString)!)
+//        
+//        let task = NSURLSession.sharedSession().dataTaskWithRequest(request) { (data , response, error ) -> Void in
+//            if let dictionary = try! NSJSONSerialization.JSONObjectWithData(data!, options: []) as? NSDictionary {
+//                dispatch_async(dispatch_get_main_queue()) {
+//                    self.movies = dictionary["movies"] as? NSArray
+//                    self.movieTableView.reloadData()
+//                }
+////                NSLog("\(dictionary)")
+//            } else {
+//            
+//            }
+//        }
+//        
+//        task.resume()
         
-        let task = NSURLSession.sharedSession().dataTaskWithRequest(request) { (data , response, error ) -> Void in
-            if let dictionary = try! NSJSONSerialization.JSONObjectWithData(data!, options: []) as? NSDictionary {
-                dispatch_async(dispatch_get_main_queue()) {
-                    self.movies = dictionary["movies"] as? NSArray
-                    self.movieTableView.reloadData()
-                }
-//                NSLog("\(dictionary)")
-            } else {
-            
-            }
-        }
-        task.resume()
-        
+        refresh(self)
+
     }
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        
         tableView.deselectRowAtIndexPath(indexPath, animated: true)
+        
     }
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
@@ -76,7 +93,47 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         let movieDetailsViewController = segue.destinationViewController as! MovieDetaisViewController
         movieDetailsViewController.movie = movie as! NSDictionary
         
+        KVNProgress.show()
+        
     }
+    
+    func refresh(sender:AnyObject) {
+        
+        KVNProgress.show()
+        
+        let url = NSURL(string: "https://gist.githubusercontent.com/timothy1ee/d1778ca5b944ed974db0/raw/489d812c7ceeec0ac15ab77bf7c47849f2d1eb2b/gistfile1.json")!
+        let request = NSURLRequest(URL: url)
+        NSURLConnection.sendAsynchronousRequest(request,queue: NSOperationQueue.mainQueue()) { (response, data, error) -> Void in
+            
+            let responseDictionary = try! NSJSONSerialization.JSONObjectWithData(data!, options: []) as! NSDictionary
+            
+            dispatch_async(dispatch_get_main_queue()) {
+                self.movies = responseDictionary["movies"] as? NSArray
+                NSLog("Count \(responseDictionary.count)")
+                self.movieTableView.reloadData()
+            }
+            
+            NSLog("\(responseDictionary)")
+            
+        }
+        
+        // Simulate API loading
+        delay(2, closure: {
+            self.refreshControl.endRefreshing()
+            KVNProgress.dismiss()
+        })
+        
+    }
+    
+    func delay(delay:Double, closure:()->()) {
+        dispatch_after(
+            dispatch_time(
+                DISPATCH_TIME_NOW,
+                Int64(delay * Double(NSEC_PER_SEC))
+            ),
+            dispatch_get_main_queue(), closure)
+    }
+    
     
 }
 
